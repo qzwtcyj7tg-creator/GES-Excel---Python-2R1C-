@@ -20,4 +20,6 @@ def validierung_din_12831(norm_ta, norm_ti, ergebnis_phi_hc):
     # print(f"Abweichung: {berechnete_heizlast - c320.phi_hc_max_heiz:.2f} W")
 
 
-# def validierung_din_4108():
+def validierung_din_4108():  
+    print("Validierung nach DIN 4108:")
+    
