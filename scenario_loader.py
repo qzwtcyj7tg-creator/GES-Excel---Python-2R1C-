@@ -2,15 +2,16 @@
 
 import yaml
 
-with open('scenarios/din_en_12831.yaml', 'r') as file:
-    data = yaml.load(file, Loader = yaml.SafeLoader)
+def load_scenario(file_path):
+    with open('scenarios/din_en_12831.yaml', 'r') as file:
+        data = yaml.load(file, Loader = yaml.SafeLoader)
 
-print(data)
+    for key in dict.keys(data):
+        print(key, ":", data[key])  
 
-for key in dict.keys(data):
-    print(key, ":", data[key])  
+    # Dictionary übergeben und daraus mit den Variablennamenn die Werte extrahieren?
+    # Andere option? 
 
-print("UserName:", data["UserName"])
+    # Test V 0.2
 
-# Dictionary übergeben und daraus mit den Variablennamenn die Werte extrahieren?
-# Andere option? 
+    return data

@@ -7,6 +7,7 @@ from rlt import rlt_berechung
 from plotter import Plotter
 from schleife import schleife
 from vergleich_xl import vergleich_plot
+from scenario_loader import load_scenario
 
 # Lib Import
 import matplotlib.pyplot as plt
@@ -15,6 +16,11 @@ import pandas as pd
 from datetime import datetime
 
 # ----- Beginn Hauptskript -----
+
+# YAML Import TEST!
+data = load_scenario('scenarios/din_en_12831.yaml')
+
+print("Daten aus YAML-Datei:", data)
 
 # Wetterdaten importieren
 ta, stunden, direkt, diffus, global_strahl, nsf = wetter_import.lade_wetterdaten(r"C:\Users\nicol\OneDrive - Technische Hochschule Augsburg\THA\M12\2025\Python_Modell_2R1C\import\wetterdaten.xlsx")
