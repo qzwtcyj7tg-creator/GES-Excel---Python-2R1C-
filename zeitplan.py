@@ -2,6 +2,9 @@ import numpy as np
 from raum_parameter import c320
  
 # --- Zeitplan wie in GES Excel ---
+# Funktioniert noch nicht! 
+# Problem: Fängt immer eine Stunde später an
+# Aktuell wird aber NSF über GES EXCEL Tabelle importiert
 
 # 1. Zeitachse erstellen mit 8760 Stunden (1 Jahr, nicht Schaltjahr)
 stunden_jahr = np.arange(8760) # Eindimensionaler Array von 0 bis 8759, repräsentiert jede Stunde im Jahr.

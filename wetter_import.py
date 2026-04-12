@@ -7,8 +7,8 @@ def lade_wetterdaten(dateipfad):
     
     stunden = np.arange(8760)       # Stunden im Jahr
     ta = df['t'].values             # Außentemp in °C
-    direkt = df['B'].values         # Direkte Str. W/m2
-    diffus = df['D'].values         # Diffuse Str. W/m2
+    direkt = df['B'].values         # Direkte Str. W/m2 (B = Beam)
+    diffus = df['D'].values         # Diffuse Str. W/m2 (D = Diffuse)
     global_strahl = direkt + diffus # Global Strahlung als einfache Bilanz
     nutzersignal = df['NSF'].values # Import Nutzungssignal für den Vergleich
     

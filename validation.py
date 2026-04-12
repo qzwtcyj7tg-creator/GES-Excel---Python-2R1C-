@@ -14,8 +14,8 @@ def validierung_din_12831(norm_ta, norm_ti, ergebnis_phi_hc):
 
     berechnete_heizlast = HT * (T_i - T_a)
 
-    print(f"Berechnete Heizlast nach DIN 12831: {berechnete_heizlast:.2f} W")
-    print(f"Maximale Heizlast der Heizkörper: {c320.phi_hc_max_heiz:.2f} W")
+    # print(f"Berechnete Heizlast nach DIN 12831: {berechnete_heizlast:.2f} W")
+    # print(f"Maximale Heizlast der Heizkörper: {c320.phi_hc_max_heiz:.2f} W")
     # print(f"Maximale angewendete Heizlast in Simulation: {ergebnis_phi_hc:.2f} W")
     # print(f"Abweichung: {berechnete_heizlast - c320.phi_hc_max_heiz:.2f} W")
 

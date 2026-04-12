@@ -18,7 +18,7 @@ K_LUFT = (p_genau * 1004) / (3600 * 287.06)
 # In der schleife.py
 def schleife(theta_aktuell, dt, ergebnis_h_v, ergebnis_phi_hc, ergebnis_phi_heizregister, 
             ergebnis_phi_lueftung, ergebnis_phi_vent, ergebnis_t_zul, ergebnis_theta_i, 
-            ergebnis_v_punkt, ta, nsf, zeitplan, direkt, phi_intern,ergebnis_t_nach_wrg, ergebnis_t_abl):
+            ergebnis_v_punkt, ta, nsf, zeitplan, direkt, phi_intern,ergebnis_t_nach_wrg, ergebnis_t_abl, ergebnis_theta_test_i, ergebnis_theta_0W, ergebnis_t_soll):
     
     for t in range(8760):
         ta_stunde = ta[t]
@@ -34,11 +34,8 @@ def schleife(theta_aktuell, dt, ergebnis_h_v, ergebnis_phi_hc, ergebnis_phi_heiz
         # p_t = variabler_druck(494)  
         # K_LUFT = (p_t * 1004) / (3600 * 287.06)
 
-        h_v = (K_LUFT / (theta_aktuell + 273.15)) * v_punkt
-
-        ergebnis_h_v[t] = h_v
-        ergebnis_t_nach_wrg[t] = t_nach_wrg
-        ergebnis_t_abl[t] = t_abl
+        # h_v = (K_LUFT / (theta_aktuell + 273.15)) * v_punkt
+        h_v = 0.34 * v_punkt
 
         # Faktoren für die Formel
         dt_pro_C = dt / c320.wkap
@@ -49,26 +46,41 @@ def schleife(theta_aktuell, dt, ergebnis_h_v, ergebnis_phi_hc, ergebnis_phi_heiz
         # 1. Innentemperatur ohne Heizung 
         t_0W = (theta_aktuell + dt_pro_C * (c320.h_t * ta_stunde + h_v * t_zul + phi_int + phi_sol)) / nenner
 
+        phi_hc = 0.0
+        phi_hc_test = 1000.0
+        t_test = t_0W
+
         # 2. Heizlast-Ermittlung
-        phi_hc = 0
+        # phi_hc = 0
         if t_0W < t_soll_h:
             # Heizen notwendig um t_soll_h zu erreichen
-            phi_hc_test = 1000.0 # Beinflusst nicht das Ergebnis
             t_test = (theta_aktuell + dt_pro_C * (c320.h_t * ta_stunde + h_v * t_zul + phi_int + phi_sol + phi_hc_test)) / nenner
             
+            # Numerische Stabilität
+            delta_test = t_test - t_0W
+            if abs(delta_test) >= 1e-6:
+                phi_hc = phi_hc_test * ((t_soll_h - t_0W) / delta_test)
+            else:
+                phi_hc = 0.0 # Fallback Option, falls Test_HL zu klein ist
+                
+
             # Dreisatz für exakte Heizlast
-            phi_hc = phi_hc_test * ((t_soll_h - t_0W) / (t_test - t_0W))
+            # phi_hc = phi_hc_test * ((t_soll_h - t_0W) / (t_test - t_0W))
             
             # Begrenzung auf max. Heizkapazität 
             phi_hc = min(phi_hc, c320.phi_hc_max_heiz) 
+            phi_hc = max(phi_hc, 0.0) 
+        else:
+            # Kein Heizen notwendig, Innentemperatur ist bereits über Sollwert
+            phi_hc = 0
 
         # 3. Finale Innentemperatur
-        theta_neu = (1 / nenner) * (theta_aktuell + dt_pro_C * (c320.h_t * ta_stunde + h_v * t_zul + phi_int + phi_sol + phi_hc))
+        theta_neu = (theta_aktuell + dt_pro_C * (c320.h_t * ta_stunde + h_v * t_zul + phi_int + phi_sol + phi_hc)) / nenner
 
         # === DEBUG 10 Stunden ===
-        if t < 10:
-            heizt = "JA" if phi_hc > 0 else "NEIN"
-            print(f"{t:5d} | {t_0W:6.2f} | {t_soll_h:6.2f} | {phi_hc:7.1f} | {theta_neu:8.2f} | {heizt}")
+        # NUR für erste 10 Iterationen
+        # if t < 10:
+            # print(f"DEBUG t={t}: nsf={nsf[t]:.2f} → tsoll={t_soll_h:.1f} | Erwartung: {'21°C' if nsf[t]>0.1 else '16°C'}")
 
         # SPEICHERUNG DER ERGEBNISSE IN ARRAYS
         ergebnis_theta_i[t] = theta_neu
@@ -77,9 +89,19 @@ def schleife(theta_aktuell, dt, ergebnis_h_v, ergebnis_phi_hc, ergebnis_phi_heiz
         ergebnis_v_punkt[t] = v_punkt
         ergebnis_phi_heizregister[t] = p_hz
         ergebnis_phi_vent[t] = p_vent
-        ergebnis_phi_lueftung[t] = h_v * (t_zul - theta_neu)  
+        ergebnis_phi_lueftung[t] = h_v * (t_zul - theta_neu)
+        ergebnis_theta_test_i[t] = t_test
+        ergebnis_theta_0W[t] = t_0W
+        ergebnis_t_soll[t] = t_soll_h
+        ergebnis_h_v[t] = h_v
+        ergebnis_t_nach_wrg[t] = t_nach_wrg
+        ergebnis_t_abl[t] = t_abl
 
-        # UPDATE FÜR NÄCHSTEN ZEITSCHRITT, IT SPEICHERN
+
+        # UPDATE FÜR NÄCHSTEN ZEITSCHRITT, SPEICHERN
         theta_aktuell = theta_neu
-    
-    return theta_aktuell, dt, ergebnis_h_v, ergebnis_phi_hc, ergebnis_phi_heizregister, ergebnis_phi_lueftung, ergebnis_phi_vent, ergebnis_t_zul, ergebnis_theta_i, ergebnis_v_punkt
+
+    return (
+        theta_aktuell, dt, ergebnis_h_v, ergebnis_phi_hc, ergebnis_phi_heizregister,
+        ergebnis_phi_lueftung, ergebnis_phi_vent, ergebnis_t_zul, ergebnis_theta_i, ergebnis_v_punkt
+    )

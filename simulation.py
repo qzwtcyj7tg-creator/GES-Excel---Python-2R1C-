@@ -18,12 +18,13 @@ from datetime import datetime
 # ----- Beginn Hauptskript -----
 
 # YAML Import TEST!
-data = load_scenario('scenarios/din_en_12831.yaml')
+# data = load_scenario('scenarios/din_en_12831.yaml')
 
-print("Daten aus YAML-Datei:", data)
+# print("Daten aus YAML-Datei:", data)
 
 # Wetterdaten importieren
 ta, stunden, direkt, diffus, global_strahl, nsf = wetter_import.lade_wetterdaten(r"C:\Users\nicol\OneDrive - Technische Hochschule Augsburg\THA\M12\2025\Python_Modell_2R1C\import\wetterdaten.xlsx")
+# Aktuell wird Zeitplan bzw. Nutzersignal über Excel importiert
 
 # Interne Lasten berechnen
 phi_pers = 60 * 70  # 4200 W
@@ -43,6 +44,9 @@ ergebnis_theta_i = np.zeros(8760)
 ergebnis_h_v = np.zeros(8760)
 ergebnis_t_nach_wrg = np.zeros(8760)
 ergebnis_t_abl = np.zeros(8760)
+ergebnis_theta_test_i = np.zeros(8760)
+ergebnis_theta_0W = np.zeros(8760)
+ergebnis_t_soll = np.zeros(8760)
 
 
 # 1. Startwerte der Simulation
@@ -54,15 +58,16 @@ theta_aktuell, dt, ergebnis_h_v, ergebnis_phi_hc, ergebnis_phi_heizregister, \
 ergebnis_phi_lueftung, ergebnis_phi_vent, ergebnis_t_zul, ergebnis_theta_i, ergebnis_v_punkt = \
     schleife(theta_aktuell, dt, ergebnis_h_v, ergebnis_phi_hc, ergebnis_phi_heizregister, 
              ergebnis_phi_lueftung, ergebnis_phi_vent, ergebnis_t_zul, ergebnis_theta_i, 
-             ergebnis_v_punkt, ta, nsf, zeitplan, direkt, phi_intern, ergebnis_t_nach_wrg, ergebnis_t_abl) 
+             ergebnis_v_punkt, ta, nsf, zeitplan.nutzersignal_final, direkt, phi_intern, ergebnis_t_nach_wrg, ergebnis_t_abl, ergebnis_theta_test_i, ergebnis_theta_0W,
+             ergebnis_t_soll) 
 
 # --- DATEN FÜR EXPORT VORBEREITEN ---
 
 export_df = pd.DataFrame({
-    "Stunde": np.arange(1, 8761),
+    "Stunde": np.arange(1, 8761), # Da bei 1 Angefangen wird zu zählen
     "Außentemperatur [°C]": ta,
     "Nutzungssignal (Simulation) [-]": nsf,
-    "Nutzungssignal (Zeitplan) [-]": zeitplan.nutzersignal_final,
+    "Nutzungssignal (Zeitplan Klasse - Funktioniert noch nicht) [-]": zeitplan.nutzersignal_final,
     "Interne Gewinne [W]": phi_intern,  
     "Zulufttemperatur [°C]": ergebnis_t_zul,
     "Volumenstrom [m3/h]": ergebnis_v_punkt,
@@ -71,7 +76,12 @@ export_df = pd.DataFrame({
     "Innentemp [°C]": ergebnis_theta_i,
     "Solare Einstrahlung [W]": direkt,
     "Temp nach WRG [°C]": ergebnis_t_nach_wrg,
-    "Temp Abl [°C]": ergebnis_t_abl
+    "Temp Abl [°C]": ergebnis_t_abl,
+    "HV": ergebnis_h_v,
+    "Theta Test": ergebnis_theta_test_i,
+    "Theta 0W": ergebnis_theta_0W,
+    "T Soll": ergebnis_t_soll
+
 })
 
 # --- SPEICHERN der Berechnungen ---
@@ -79,7 +89,7 @@ export_df = pd.DataFrame({
 datum = datetime.now().strftime("%Y%m%d")
 
 try:
-    dateiname = f"import\\Zuluft_Ergebnisse_{datum}.xlsx"
+    dateiname = f"export\\Zuluft_Ergebnisse_{datum}.xlsx"
     export_df.to_excel(dateiname, index=False)
     print(f"\nERFOLG: '{dateiname}' wurde erstellt.")
 except PermissionError:
@@ -105,7 +115,7 @@ mein_plotter = Plotter(
 mein_plotter.plot_raumklima()
 # mein_plotter.zeige_bilanz_konsole()
 # mein_plotter.zeige_plausibilitaet_konsole()
-# mein_plotter.zeige_bilanz()
+mein_plotter.zeige_bilanz()
 plt.show()
 
 validierung_din_12831(norm_ta=-14, norm_ti=21, ergebnis_phi_hc=np.max(ergebnis_phi_hc))

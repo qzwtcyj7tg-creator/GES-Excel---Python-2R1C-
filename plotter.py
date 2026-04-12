@@ -22,7 +22,7 @@ class Plotter:
 
         # Plot 1: Innentemperatur vs. Außentemperatur
         ax1.plot(self.theta_i, label='Innentemperatur (T_i)', color='red', linewidth=1)
-        ax1.plot(self.ta, label='Außentemperatur (T_a)', color='orange', alpha=0.4)
+        ax1.plot(self.ta, label='Außentemperatur (T_a)',color='orange', alpha=0.4)
         ax1.set_ylabel('Temperatur [°C]')
         ax1.set_title(f'Raumklima Analyse - {self.raum_name}')
         ax1.legend(loc='upper right')

@@ -66,7 +66,7 @@ c320 = RaumEingabe(
     
     u_wert_mittel = 0.55,
     h_t = 45.8,
-    a_huell = 203.1,
+    a_huell = 203.1 + 83.4,
     
     c_v_luft = 0.34, 
     rho_luft = 1.13,
@@ -84,13 +84,13 @@ c320 = RaumEingabe(
     vent_abl = volumenstrom,
     vent_ges = p_vent_ges,
 
-    wkap = 7714,
+    wkap = L * B * 90, # 90 Wh/m3K laut norm für mittelschwere Räume, multipliziert mit Grundfläche
 
     theta_soll_h_anw = 21,
     theta_soll_h_abw = 16,
 
-    phi_hc_max_heiz = 1500, # Maximale Heizleistungen 
-    phi_hc_max_kuehl = -0,
+    phi_hc_max_heiz = 9500, # Maximale Heizleistungen 
+    phi_hc_max_kuehl = 0, # Negativer Wert angeben
 
     name = "C3.20"
 )
