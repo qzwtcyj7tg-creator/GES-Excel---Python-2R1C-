@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from datetime import datetime
+from pathlib import Path
 
 # ----- Beginn Hauptskript -----
 
@@ -23,7 +24,7 @@ from datetime import datetime
 # print("Daten aus YAML-Datei:", data)
 
 # Wetterdaten importieren
-ta, stunden, direkt, diffus, global_strahl, nsf = wetter_import.lade_wetterdaten(r"C:\Users\nicol\OneDrive - Technische Hochschule Augsburg\THA\M12\2025\Python_Modell_2R1C\import\wetterdaten.xlsx")
+ta, stunden, direkt, diffus, global_strahl, nsf = wetter_import.lade_wetterdaten(Path(__file__).parent / "import" / "wetterdaten.xlsx")
 # Aktuell wird Zeitplan bzw. Nutzersignal über Excel importiert
 
 # Interne Lasten berechnen
@@ -31,7 +32,7 @@ phi_pers = 60 * 70  # 4200 W
 phi_geraete = 1400  # 1400 W
 phi_licht = 10 * c320.grundflaeche  # 857 W
 
-phi_intern = (phi_pers + phi_geraete + phi_licht) * nsf # Mit Nutzungssignal multipliziert
+phi_intern = (phi_pers + phi_geraete + phi_licht) * zeitplan.nutzersignal_final # Mit Nutzungssignal multipliziert
 
 # Ergebnisse in Arrays speichern
 ergebnis_t_zul = np.zeros(8760)
@@ -56,9 +57,9 @@ dt = 1.0              # Zeitschritt 1 Stunde
 # Simulationsschleife (Aufruf der Funktion in "schleife.py")
 theta_aktuell, dt, ergebnis_h_v, ergebnis_phi_hc, ergebnis_phi_heizregister, \
 ergebnis_phi_lueftung, ergebnis_phi_vent, ergebnis_t_zul, ergebnis_theta_i, ergebnis_v_punkt = \
-    schleife(theta_aktuell, dt, ergebnis_h_v, ergebnis_phi_hc, ergebnis_phi_heizregister, 
-             ergebnis_phi_lueftung, ergebnis_phi_vent, ergebnis_t_zul, ergebnis_theta_i, 
-             ergebnis_v_punkt, ta, nsf, zeitplan.nutzersignal_final, direkt, phi_intern, ergebnis_t_nach_wrg, ergebnis_t_abl, ergebnis_theta_test_i, ergebnis_theta_0W,
+    schleife(theta_aktuell, dt, ergebnis_h_v, ergebnis_phi_hc, ergebnis_phi_heizregister,
+             ergebnis_phi_lueftung, ergebnis_phi_vent, ergebnis_t_zul, ergebnis_theta_i,
+             ergebnis_v_punkt, ta, zeitplan.nutzersignal_final, nsf, direkt, phi_intern, ergebnis_t_nach_wrg, ergebnis_t_abl, ergebnis_theta_test_i, ergebnis_theta_0W,
              ergebnis_t_soll) 
 
 # --- DATEN FÜR EXPORT VORBEREITEN ---

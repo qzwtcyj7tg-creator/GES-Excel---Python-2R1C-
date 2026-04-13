@@ -1,8 +1,9 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from pathlib import Path
 
-dateien_pfad = r"C:\Users\nicol\OneDrive - Technische Hochschule Augsburg\THA\M12\2025\Python_Modell_2R1C\import\vergleich_hl_it.xlsx"
+dateien_pfad = Path(__file__).parent / "import" / "vergleich_hl_it.xlsx"
 df = pd.read_excel(dateien_pfad)
 
 stunden = np.arange(8760)       # Stunden im Jahr
