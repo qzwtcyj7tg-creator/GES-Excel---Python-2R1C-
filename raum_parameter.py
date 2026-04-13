@@ -65,7 +65,7 @@ c320 = RaumEingabe(
     volumen = L * B * H,
     
     u_wert_mittel = 0.55,
-    h_t = 45.8,
+    h_t = 45.812828645084096,
     a_huell = 203.1 + 83.4,
     
     c_v_luft = 0.34, 
