@@ -1,2 +1,6 @@
 __pycache__/
 *.pyc
+.DS_Store
+*.xlsx
+!data/input/wetterdaten.xlsx
+!data/input/vergleich_hl_it.xlsx

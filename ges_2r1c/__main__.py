@@ -1,0 +1,59 @@
+"""Entry point: python -m ges_2r1c"""
+
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+from .engine import run_simulation
+from .export import export_results
+from .plotter import Plotter
+from .raum import create_c320
+from .wetter import lade_wetterdaten
+from .zeitplan import create_zeitplan
+
+
+def main():
+    project_root = Path(__file__).parent.parent
+
+    # Raum erstellen
+    raum = create_c320()
+    print(f"Raum {raum.name} erfolgreich angelegt!")
+
+    # Wetterdaten laden
+    ta, stunden, direkt, diffus, global_strahl, nsf = lade_wetterdaten(
+        project_root / "data" / "input" / "wetterdaten.xlsx"
+    )
+
+    # Nutzungssignal erstellen
+    nutzersignal = create_zeitplan()
+
+    # Interne Lasten berechnen
+    phi_pers = 60 * 70       # 4200 W
+    phi_geraete = 1400        # 1400 W
+    phi_licht = 10 * raum.grundflaeche  # 857 W
+    phi_intern = (phi_pers + phi_geraete + phi_licht) * nutzersignal
+
+    # Simulation durchführen
+    res = run_simulation(
+        raum=raum,
+        ta=ta,
+        nsf=nsf,
+        direkt=direkt,
+        phi_intern=phi_intern,
+    )
+
+    # Ergebnisse exportieren
+    output_dir = project_root / "data" / "output"
+    export_results(res, ta, nsf, nutzersignal, phi_intern, direkt, output_dir)
+
+    # Plotten
+    plotter = Plotter(stunden=stunden, ta=ta, res=res,
+                      raum_name=raum.name, flaeche=raum.grundflaeche)
+    plotter.plot_raumklima()
+    plotter.zeige_bilanz()
+    plt.show()
+
+
+if __name__ == "__main__":
+    main()
