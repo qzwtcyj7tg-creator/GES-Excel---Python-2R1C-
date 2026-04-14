@@ -36,13 +36,17 @@ class RaumEingabe:
 
     # Wärmekapazität
     wkap: float          # Wh/k
+
+    # Heizen und Kühlen
+    heating_ideal_on: bool # Ideales Heizelement an/aus
+    cooling_ideal_on: bool # Ideales Heizelement an/aus
     
     theta_soll_h_anw: float  # Heizen bei Anwesenheit
-    theta_soll_h_abw: float  # Heizen bei Abwesenheit / Absenkung
-    # theta_soll_c_anw: float  # Kühlen bei Anwesenheit
-    # theta_soll_c_abw: float  # Kühlen bei Abwesenheit
+    theta_soll_h_abw: float  # Heizen bei Abwesenheit 
+    theta_soll_c_anw: float  # Kühlen bei Anwesenheit
+    theta_soll_c_abw: float  # Kühlen bei Abwesenheit
 
-    # Beispielwerte für raum_parameter.py
+    # Beispielwerte 
     phi_hc_max_heiz: float   # Maximale Heizleistung in Watt 
     phi_hc_max_kuehl: float # Maximale Kühlleistung in Watt
 
@@ -86,11 +90,17 @@ c320 = RaumEingabe(
 
     wkap = L * B * 90, # 90 Wh/m3K laut norm für mittelschwere Räume, multipliziert mit Grundfläche
 
+    heating_ideal_on = True,
+    cooling_ideal_on = True,
+    
+    theta_soll_c_anw = 25,
+    theta_soll_c_abw = 32,
+
     theta_soll_h_anw = 21,
     theta_soll_h_abw = 16,
 
     phi_hc_max_heiz = 9500, # Maximale Heizleistungen 
-    phi_hc_max_kuehl = 0, # Negativer Wert angeben
+    phi_hc_max_kuehl = -9500, # Negativer Wert angeben
 
     name = "C3.20"
 )

@@ -7,6 +7,60 @@ def bestimme_heiz_sollwert(nutzersignal, raum):
         return raum.theta_soll_h_anw
     else:
         return raum.theta_soll_h_abw
+    
+def bestimme_kuhlung_sollwert(nutzersignal, raum):
+    if nutzersignal > 0:
+        return raum.theta_soll_c_anw
+    else:
+        return raum.theta_soll_c_abw
+    
+def calculate_hc(praesenz, raum, t_0W, theta_aktuell, dt_pro_C, ta_stunde, h_v, t_zul, 
+                 phi_int, phi_sol, nenner):
+    
+    t_test = t_0W
+    phi_hc_test = 1000
+
+    t_soll_heating = bestimme_heiz_sollwert(praesenz, raum)
+    t_soll_cooling = bestimme_kuhlung_sollwert(praesenz, raum)
+
+    # 2. Heizlast-Ermittlung wenn ideales Heizelement an
+    if t_0W < t_soll_heating and c320.heating_ideal_on == True:
+
+        # Heizen notwendig um t_soll_h zu erreichen
+        t_test = (theta_aktuell + dt_pro_C * (c320.h_t * ta_stunde + h_v * t_zul + phi_int + phi_sol + phi_hc_test)) / nenner
+
+        # Numerische Stabilität
+        delta_test = t_test - t_0W
+        if abs(delta_test) >= 1e-6:
+            phi_hc = phi_hc_test * ((t_soll_heating - t_0W) / delta_test)
+        else:
+            phi_hc = 0.0 # Fallback Option, falls Test_HL zu klein ist
+
+        # Begrenzung auf max. Heizleistung
+        phi_hc = min(phi_hc, c320.phi_hc_max_heiz)
+        phi_hc = max(phi_hc, 0.0)
+        return phi_hc
+
+    elif t_0W > t_soll_cooling and c320.cooling_ideal_on == True:
+        # Kühlen notwendig um t_soll_cooling zu erreichen
+        t_test = (theta_aktuell + dt_pro_C * (c320.h_t * ta_stunde + h_v * t_zul + phi_int + phi_sol + phi_hc_test)) / nenner
+
+        # Numerische Stabilität
+        delta_test = t_test - t_0W
+        if abs(delta_test) >= 1e-6:
+            phi_hc = phi_hc_test * ((t_soll_cooling - t_0W) / delta_test)
+        else:
+            phi_hc = 0.0 # Fallback Option, falls Test_HL zu klein ist
+
+        # Begrenzung auf max. Kühlleistung
+        phi_hc = max(phi_hc, c320.phi_hc_max_kuehl) 
+        phi_hc = min(phi_hc, 0.0)
+        return phi_hc
+    else:
+        # Kein Heizen notwendig, Innentemperatur ist bereits über Sollwert
+        return 0
+
+
 
 # Variabler Luftdruck in Abhängigkeit von der Höhe über NN, NOCH NCIHT BENUTZT, ABER FÜR SPÄTER VORGESEHEN!
 def variabler_druck(hohe_nn):
@@ -31,7 +85,7 @@ def schleife(theta_aktuell, dt, ergebnis_h_v, ergebnis_phi_hc, ergebnis_phi_heiz
     pre_t_abl = np.zeros(8760)
 
     for t in range(8760):
-        t_zul, v_punkt, p_hz, p_vent, t_nach_wrg, t_abl = rlt_berechung(ta[t], nsf[t], c320, 0)
+        t_zul, v_punkt, p_hz, p_vent, t_nach_wrg, t_abl = rlt_berechung(ta[t], nsf[t], c320)
         pre_t_zul[t] = t_zul
         pre_v_punkt[t] = v_punkt
         pre_p_hz[t] = p_hz
@@ -58,7 +112,8 @@ def schleife(theta_aktuell, dt, ergebnis_h_v, ergebnis_phi_hc, ergebnis_phi_heiz
         t_nach_wrg = pre_t_nach_wrg[t]
         t_abl = pre_t_abl[t]
 
-        t_soll_h = bestimme_heiz_sollwert(praesenz, c320)
+        t_soll_heating = bestimme_heiz_sollwert(praesenz, c320)
+        t_soll_cooling = bestimme_kuhlung_sollwert(praesenz, c320)
 
         # h_v = (K_LUFT / (theta_aktuell + 273.15)) * v_punkt
         h_v = 0.34 * v_punkt
@@ -73,28 +128,9 @@ def schleife(theta_aktuell, dt, ergebnis_h_v, ergebnis_phi_hc, ergebnis_phi_heiz
         t_0W = (theta_aktuell + dt_pro_C * (c320.h_t * ta_stunde + h_v * t_zul + phi_int + phi_sol)) / nenner
 
         phi_hc = 0.0
-        phi_hc_test = 1000.0
-        t_test = t_0W
 
-        # 2. Heizlast-Ermittlung
-        if t_0W < t_soll_h:
-            # Heizen notwendig um t_soll_h zu erreichen
-            t_test = (theta_aktuell + dt_pro_C * (c320.h_t * ta_stunde + h_v * t_zul + phi_int + phi_sol + phi_hc_test)) / nenner
-
-            # Numerische Stabilität
-            delta_test = t_test - t_0W
-            if abs(delta_test) >= 1e-6:
-                phi_hc = phi_hc_test * ((t_soll_h - t_0W) / delta_test)
-            else:
-                phi_hc = 0.0 # Fallback Option, falls Test_HL zu klein ist
-
-
-            # Begrenzung auf max. Heizkapazität
-            phi_hc = min(phi_hc, c320.phi_hc_max_heiz)
-            phi_hc = max(phi_hc, 0.0)
-        else:
-            # Kein Heizen notwendig, Innentemperatur ist bereits über Sollwert
-            phi_hc = 0
+        phi_hc = calculate_hc(praesenz, c320, t_0W, theta_aktuell, dt_pro_C, ta_stunde, h_v, 
+                              t_zul, phi_int, phi_sol, nenner)
 
         # 3. Finale Innentemperatur
         theta_neu = (theta_aktuell + dt_pro_C * (c320.h_t * ta_stunde + h_v * t_zul + phi_int + phi_sol + phi_hc)) / nenner
@@ -107,9 +143,9 @@ def schleife(theta_aktuell, dt, ergebnis_h_v, ergebnis_phi_hc, ergebnis_phi_heiz
         ergebnis_phi_heizregister[t] = p_hz
         ergebnis_phi_vent[t] = p_vent
         ergebnis_phi_lueftung[t] = h_v * (t_zul - theta_neu)
-        ergebnis_theta_test_i[t] = t_test
+        # ergebnis_theta_test_i[t] = t_test
         ergebnis_theta_0W[t] = t_0W
-        ergebnis_t_soll[t] = t_soll_h
+        ergebnis_t_soll[t] = t_soll_heating
         ergebnis_h_v[t] = h_v
         ergebnis_t_nach_wrg[t] = t_nach_wrg
         ergebnis_t_abl[t] = t_abl
