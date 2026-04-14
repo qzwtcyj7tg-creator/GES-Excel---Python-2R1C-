@@ -6,7 +6,7 @@ import pandas as pd
 def t_abl_prüfen(ta_aktuell):
     return 20.0 if ta_aktuell <= 20.0 else 25.0
 
-def rlt_berechung(ta_aktuell, nutzer_anwesend, raum, ti_aktuell):
+def rlt_berechung(ta_aktuell, nutzer_anwesend, raum):
     t_abl = t_abl_prüfen(ta_aktuell)
     
     # Soll Temperatur Raum bestimmen mithilfe von Nutzungssignal

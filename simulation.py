@@ -119,7 +119,7 @@ mein_plotter.plot_raumklima()
 mein_plotter.zeige_bilanz()
 plt.show()
 
-validierung_din_12831(norm_ta=-14, norm_ti=21, ergebnis_phi_hc=np.max(ergebnis_phi_hc))
+# validierung_din_12831(norm_ta=-14, norm_ti=21, ergebnis_phi_hc=np.max(ergebnis_phi_hc))
 
 # Vergleich mit Daten aus der Excel-Datei: Innentemperatur, Heizleistung, und Differenz der Innentemperatur (xl vs py)
-vergleich_plot(ergebnis_theta_i, ergebnis_phi_hc, plot_it=True, hl_an=True, plot_diff=False)
+# vergleich_plot(ergebnis_theta_i, ergebnis_phi_hc, plot_it=True, hl_an=True, plot_diff=False)
