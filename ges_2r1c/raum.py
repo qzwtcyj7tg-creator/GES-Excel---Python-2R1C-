@@ -90,7 +90,7 @@ def create_c320() -> RaumEingabe:
         wkap=L * B * 90,
 
         heating_ideal_on=True,
-        cooling_ideal_on=True,
+        cooling_ideal_on=False,
 
         theta_soll_c_anw=25,
         theta_soll_c_abw=32,
