@@ -1,5 +1,3 @@
-"""Entry point: python -m ges_2r1c"""
-
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -13,6 +11,7 @@ from .plotter import Plotter
 from .raum import create_c320
 from .wetter import lade_wetterdaten
 from .zeitplan import create_zeitplan
+from .sonnenstand import sonnenstand
 
 
 def main():
@@ -36,12 +35,15 @@ def main():
     phi_licht = 10 * raum.grundflaeche  # 857 W
     phi_intern = (phi_pers + phi_geraete + phi_licht) * nutzersignal
 
+    # einstrahlung_fenster_1 = sonnenstand(48.2, 10.5 )
+
     # Simulation durchführen
     res = run_simulation(
         raum=raum,
         ta=ta,
         nsf=nutzersignal,
         direkt=direkt,
+        diffus=diffus,
         phi_intern=phi_intern,
     )
 

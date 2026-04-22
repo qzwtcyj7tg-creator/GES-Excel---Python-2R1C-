@@ -66,6 +66,7 @@ def run_simulation(
     ta: np.ndarray,
     nsf: np.ndarray,
     direkt: np.ndarray,
+    diffus: np.ndarray,
     phi_intern: np.ndarray,
     theta_start: float = 16.0,
     dt: float = 1.0,
@@ -114,7 +115,7 @@ def run_simulation(
         ta_stunde = ta[t]
         praesenz = nsf[t]
         phi_int = phi_intern[t]
-        phi_sol = direkt[t]
+        phi_sol_dir = direkt[t]
 
         t_zul = t_zul_shifted[t]
         v_punkt = pre_v_punkt[t]
@@ -129,14 +130,14 @@ def run_simulation(
         nenner = 1 + dt_pro_C * (raum.h_t + h_v)
 
         # 1. Innentemperatur ohne Heizung
-        t_0W = (theta_aktuell + dt_pro_C * (raum.h_t * ta_stunde + h_v * t_zul + phi_int + phi_sol)) / nenner
+        t_0W = (theta_aktuell + dt_pro_C * (raum.h_t * ta_stunde + h_v * t_zul + phi_int + phi_sol_dir)) / nenner
 
         # 2. Heiz-/Kühlleistung
         phi_hc = calculate_hc(praesenz, raum, t_0W, theta_aktuell, dt_pro_C,
-                              ta_stunde, h_v, t_zul, phi_int, phi_sol, nenner)
+                              ta_stunde, h_v, t_zul, phi_int, phi_sol_dir, nenner)
 
         # 3. Finale Innentemperatur
-        theta_neu = (theta_aktuell + dt_pro_C * (raum.h_t * ta_stunde + h_v * t_zul + phi_int + phi_sol + phi_hc)) / nenner
+        theta_neu = (theta_aktuell + dt_pro_C * (raum.h_t * ta_stunde + h_v * t_zul + phi_int + phi_sol_dir + phi_hc)) / nenner
 
         # Ergebnisse speichern
         res.theta_i[t] = theta_neu
