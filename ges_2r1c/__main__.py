@@ -3,7 +3,6 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 
 from ges_2r1c import vergleich
-# import numpy as np
 
 from .engine import run_simulation
 from .export import export_results
@@ -19,6 +18,10 @@ def main():
 
     # Raum erstellen
     raum = create_c320()
+
+    for f in raum.fenster:
+        print(f"{f.name} erfolgreich angelegt!")
+
     print(f"Raum {raum.name} erfolgreich angelegt!")
 
     # Wetterdaten laden
@@ -28,6 +31,10 @@ def main():
 
     # Nutzungssignal erstellen
     nutzersignal = create_zeitplan()
+
+    # Sonnenstand berechnen für das ganze Jahr
+    alpha_liste, theta_liste, delta_liste = sonnenstand(48.1, 10.5, 15)
+
 
     # Interne Lasten berechnen
     phi_pers = 60 * 70       # 4200 W
@@ -45,6 +52,9 @@ def main():
         direkt=direkt,
         diffus=diffus,
         phi_intern=phi_intern,
+        alpha_liste=alpha_liste,
+        delta_liste=delta_liste,
+        theta_liste=theta_liste,
     )
 
     # Ergebnisse exportieren

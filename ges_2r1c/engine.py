@@ -3,6 +3,7 @@ import numpy as np
 from .raum import RaumEingabe
 from .results import HOURS_PER_YEAR, SimulationResults
 from .rlt import rlt_berechnung
+from .sonnenstand import berechnung_einstrahlung
 
 
 def bestimme_heiz_sollwert(nutzersignal: float, raum: RaumEingabe) -> float:
@@ -68,12 +69,19 @@ def run_simulation(
     direkt: np.ndarray,
     diffus: np.ndarray,
     phi_intern: np.ndarray,
+    alpha_liste: np.ndarray,
+    theta_liste: np.ndarray,
+    delta_liste: np.ndarray,
     theta_start: float = 16.0,
     dt: float = 1.0,
 ) -> SimulationResults:
     """Führt die thermische Jahressimulation durch (8760 Stunden).
 
     Args:
+        diffus: Diffuse Strahlung importiert
+        delta_liste: Liste aller Delta Werte aus Sonnenstand
+        theta_liste: Liste aller Delta Werte aus Sonnenstand
+        alpha_liste: Liste aller Delta Werte aus Sonnenstand
         raum: Raumparameter
         ta: Außentemperatur [°C] (8760 Werte)
         nsf: Nutzungssignal [-] (8760 Werte)
@@ -115,7 +123,11 @@ def run_simulation(
         ta_stunde = ta[t]
         praesenz = nsf[t]
         phi_int = phi_intern[t]
-        phi_sol_dir = direkt[t]
+        direkt = direkt[t]
+        diffus = diffus[t]
+        alpha = alpha_liste[t]
+        theta = theta_liste[t]
+        delta = delta_liste[t]
 
         t_zul = t_zul_shifted[t]
         v_punkt = pre_v_punkt[t]
@@ -126,18 +138,24 @@ def run_simulation(
 
         h_v = 0.34 * v_punkt
 
+        # Einstrahlung je Fenster berechnen
+        phi_sol = 0
+
+        for f in raum.fenster:
+            phi_sol += f.flaeche * berechnung_einstrahlung(alpha, delta, theta, f.orientierung, direkt, diffus, f.neigung, 0.2)
+
         dt_pro_C = dt / raum.wkap
         nenner = 1 + dt_pro_C * (raum.h_t + h_v)
 
         # 1. Innentemperatur ohne Heizung
-        t_0W = (theta_aktuell + dt_pro_C * (raum.h_t * ta_stunde + h_v * t_zul + phi_int + phi_sol_dir)) / nenner
+        t_0W = (theta_aktuell + dt_pro_C * (raum.h_t * ta_stunde + h_v * t_zul + phi_int + phi_sol)) / nenner
 
         # 2. Heiz-/Kühlleistung
         phi_hc = calculate_hc(praesenz, raum, t_0W, theta_aktuell, dt_pro_C,
-                              ta_stunde, h_v, t_zul, phi_int, phi_sol_dir, nenner)
+                              ta_stunde, h_v, t_zul, phi_int, phi_sol, nenner)
 
         # 3. Finale Innentemperatur
-        theta_neu = (theta_aktuell + dt_pro_C * (raum.h_t * ta_stunde + h_v * t_zul + phi_int + phi_sol_dir + phi_hc)) / nenner
+        theta_neu = (theta_aktuell + dt_pro_C * (raum.h_t * ta_stunde + h_v * t_zul + phi_int + phi_sol + phi_hc)) / nenner
 
         # Ergebnisse speichern
         res.theta_i[t] = theta_neu

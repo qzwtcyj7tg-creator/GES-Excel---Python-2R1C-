@@ -1,43 +1,59 @@
 # Berechnung des Sonnenstands und der solaren Einstrahlung
 # Geographische Länge und Breite für Augsburg (48,1° Nord, 10,5° Ost)
 
-from math import sin, cos, radians
-from xml.etree.ElementTree import PI
-from math import asin as arcsin
+from .results import HOURS_PER_YEAR
 
-from numpy import arccos
+import numpy as np
+sin = np.sin
+
+i_ext_mod = 1360 * 0.9
+
+def sonnenstand(lange, breite, zeitzonen_offset):
+
+    alpha_liste = []
+    theta_liste = []
+    delta_liste = []
+
+    for stunde in range(HOURS_PER_YEAR):
+
+        tag = stunde // 24 + 1
+
+        korrektur_stundenwinkel = -(zeitzonen_offset - lange)
+        # korrektur_stundenwinkel_min = (korrektur_stundenwinkel / 15) * 60
+
+        # Stundenwinkel in Grad (Delta)
+        delta = (stunde - 12) * 15 + korrektur_stundenwinkel
+
+        # Absolute Höhe Mittagssonne (Epsilon)
+        eps = 23.43 * np.sin((tag - 81) / 180 * np.pi)
+
+        # Elevation (Theta)
+        theta = np.arcsin(np.sin(np.radians(eps)) * np.sin(np.radians(breite)) + np.cos(np.radians(eps)) * np.cos(np.radians(breite)) * np.cos(np.radians(delta)))
+
+        # Azimut (Alpha)
+        alpha = np.arctan2(
+            np.sin(np.radians(delta)),
+            np.cos(np.radians(delta)) * np.sin(np.radians(breite)) - np.tan(np.radians(eps)) * np.cos(np.radians(breite))
+        )
+
+        alpha_liste.append(alpha)
+        theta_liste.append(theta)
+        delta_liste.append(delta)
+
+    return np.array(alpha_liste), np.array(theta_liste), np.array(delta_liste)
 
 
-def sonnenstand(breite, lange, stunde, zeitzonen_offset, direktstrahlung, diffuse_strahlung, neigungswinkel, azimut_oberflaeche, azimuth_eingabe):
-    tag = stunde // 24 + 1
-    # uhrzeit = stunde % 24
+def berechnung_einstrahlung(alpha_sonne, delta, theta, alpha_f, diffuse_strahlung, direktstrahlung, neigungswinkel, rho):
 
-    I_ext_mod = 1360 * 0,9
+    alpha = alpha_sonne[HOURS_PER_YEAR]
+    diffuse_strahlung = diffuse_strahlung[HOURS_PER_YEAR]
+    direktstrahlung = direktstrahlung[HOURS_PER_YEAR]
 
-    korrektur_stundenwinkel = -(zeitzonen_offset - lange)
-    # korrektur_stundenwinkel_min = (korrektur_stundenwinkel / 15) * 60
+    if delta < 0:
+        alpha = -alpha
 
-    # Stundenwinkel in Grad 
-    delta = (stunde - 12) * 15 + korrektur_stundenwinkel
-
-    # Absolute Hähe Mittagssonne eps
-    eps = 23.43 * sin((tag - 81) / 180 * PI)
-
-
-    # Elevation
-    # elevation = arcsin(sin(radians(eps)) * sin(radians(breite)) - cos(radians(eps)) * cos(radians(breite)))
-     
-    # Theta
-    theta = arcsin(sin(radians(eps)) * sin(radians(breite)) + cos(radians(eps)) * cos(radians(breite)) * cos(radians(delta)))
-
-    # Azimut (Hier vermutlich besser arccot formel, da direkt die Richtung angegeben wird)
-    azimut = arccos(sin(radians) * sin(radians(breite)) - sin(radians(eps)) / cos(radians(theta)) * cos(radians(breite)))
-
-    if delta < 0: 
-        azimut = -azimut
-
-    # Soonne da (ja/nein)
-    if sin(radians(theta)) > 0:
+    # Sonne da (ja/nein)
+    if np.sin(np.radians(theta)) > 0:
         sonne_da = True
     else:
         sonne_da = False
@@ -48,30 +64,30 @@ def sonnenstand(breite, lange, stunde, zeitzonen_offset, direktstrahlung, diffus
     # z = sin theta (Oben)
 
     if sonne_da:
-        x_S = cos(radians(theta)) * cos(radians(azimut)) * -1 # Damit der Normal Vektor in die Horizontsle Ebene kommt 
-        y_S = -cos(radians(theta)) * sin(radians(azimut)) * -1 # Nicht in Richtung Sonne
-        z_S = sin(radians(theta)) * -1
+        x_s = np.cos(np.radians(theta)) * np.cos(np.radians(alpha_sonne)) # Damit der Normalvektor in die Horizontale Ebene kommt
+        y_s = - np.cos(np.radians(theta)) * np.sin(np.radians(alpha_sonne)) # Nicht in Richtung Sonne
+        z_s = np.sin(np.radians(theta))
     else:
-        x_S = 0
-        y_S = 0
-        z_S = 0
+        x_s = 0
+        y_s = 0
+        z_s = 0
 
     # Einstrahlung auf Normalen Vektor der Oberfläche
-    # Leistungs Erhaltung I_n * A_N = I_Hori * A_Hori
+    # Leistungserhaltung I_n * A_N = I_Hori * A_Hori
     # A_N / A_Hori = l_N / l_Hori = sin(theta)
     # I_n = I_Hori / sin(theta)
     # I_N muss kleiner als extraterrestrische Einstrahlung sein! 
 
     if sonne_da:
-        I_B_N = direktstrahlung / sin(radians(theta))
-        if I_B_N > I_ext_mod:
-            I_B_N = I_ext_mod
+        i_b_n = direktstrahlung / np.sin(np.radians(theta))
+        if i_b_n > i_ext_mod:
+            i_b_n = i_ext_mod
     else:
-        I_B_N = 0
+        i_b_n = 0
 
     # Energieerhaltung I_B,n * l_s = I_B,F * l_F
     # cos beta = l_s / l_F 
-    # I_B,F / I_B,n = l_s / l_F = cos(radians(beta))
+    # I_B,F / I_B,n = l_s / l_F = cos(np.radians(beta))
     # cos beta = n_s (Skalarprodukt) n_F / (|n_s| * |n_F|)
     # Gemäß vereinbarung ist betrag von n_s = n_F = 1
     # cos beta = n_s (Skalarprodukt) n_F
@@ -81,17 +97,18 @@ def sonnenstand(breite, lange, stunde, zeitzonen_offset, direktstrahlung, diffus
     # y_F = sin beta sin alpha
 
     # Normalen Vektor der Oberfläche
-    x_F = -sin(radians(neigungswinkel)) * cos(radians(azimut_oberflaeche))
-    y_F = sin(radians(neigungswinkel)) * sin(radians(azimut_oberflaeche))
-    z_F = -cos(radians(neigungswinkel))
+    x_f = -np.sin(np.radians(neigungswinkel)) * np.cos(np.radians(alpha_f))
+    y_f = np.sin(np.radians(neigungswinkel)) * np.sin(np.radians(alpha_f))
+    z_f = -np.cos(np.radians(neigungswinkel))
 
-    view_faktor = (1 + cos(radians(neigungswinkel) /2))
-    view_faktor_2 = (1 - cos(radians(neigungswinkel) /2))
+    view_faktor = (1 + np.cos(np.radians(neigungswinkel) / 2))
+    view_faktor_2 = (1 - np.cos(np.radians(neigungswinkel) / 2))
 
-    I_g_h = direktstrahlung + diffuse_strahlung
+    i_g_h = direktstrahlung + diffuse_strahlung
 
-    ref_boden = 0,2
+    skalarprodukt = x_s * x_f + y_s * y_f + z_s * z_f
+    direkte_einstrahlung = skalarprodukt * i_b_n
+    diffuse_einstrahlung = view_faktor * diffuse_strahlung
+    bodenref_strahlung =  view_faktor_2 * rho * i_g_h
 
-    einstrahlung = (x_S * x_F + y_S * y_F + z_S * z_F) * I_B_N + view_faktor * diffuse_strahlung + view_faktor_2 * ref_boden * I_g_h
-
-    return einstrahlung
+    return direkte_einstrahlung + diffuse_einstrahlung + bodenref_strahlung
