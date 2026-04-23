@@ -1,8 +1,11 @@
+from ast import main
 from datetime import datetime
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
+
+from ges_2r1c import engine
 
 from .results import HOURS_PER_YEAR, SimulationResults
 
@@ -14,6 +17,9 @@ def export_results(
     nutzersignal: np.ndarray,
     phi_intern: np.ndarray,
     direkt: np.ndarray,
+    alpha_liste: np.ndarray,
+    theta_liste: np.ndarray,
+    delta_liste: np.ndarray,
     output_dir: Path,
 ) -> Path:
     """Exportiert Simulationsergebnisse als Excel-Datei.
@@ -32,13 +38,16 @@ def export_results(
         "Heizregister_Leistung [W]": res.phi_heizregister,
         "Heizung [W]": res.phi_hc,
         "Innentemp [°C]": res.theta_i,
-        "Solare Einstrahlung [W]": direkt,
+        "Solare Einstrahlung [W]": res.phi_sol,
         "Temp nach WRG [°C]": res.t_nach_wrg,
         "Temp Abl [°C]": res.t_abl,
         "HV": res.h_v,
         "Theta Test": np.zeros(HOURS_PER_YEAR),
         "Theta 0W": res.theta_0W,
         "T Soll": res.t_soll,
+        "Azimut Sonne [°]": alpha_liste,
+        "Zenitwinkel Sonne [°]": theta_liste,
+        "Delta Sonne [°]": delta_liste,
     })
 
     output_dir.mkdir(parents=True, exist_ok=True)

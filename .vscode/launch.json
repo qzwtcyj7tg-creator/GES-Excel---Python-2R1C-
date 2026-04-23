@@ -1,0 +1,12 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run ges_2r1c",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "ges_2r1c",
+      "console": "integratedTerminal"
+    }
+  ]
+}

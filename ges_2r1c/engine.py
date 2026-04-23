@@ -71,7 +71,6 @@ def run_simulation(
     phi_intern: np.ndarray,
     alpha_liste: np.ndarray,
     theta_liste: np.ndarray,
-    delta_liste: np.ndarray,
     theta_start: float = 16.0,
     dt: float = 1.0,
 ) -> SimulationResults:
@@ -79,9 +78,8 @@ def run_simulation(
 
     Args:
         diffus: Diffuse Strahlung importiert
-        delta_liste: Liste aller Delta Werte aus Sonnenstand
-        theta_liste: Liste aller Delta Werte aus Sonnenstand
-        alpha_liste: Liste aller Delta Werte aus Sonnenstand
+        theta_liste: Liste aller Theta Werte aus Sonnenstand
+        alpha_liste: Liste aller Alpha Werte aus Sonnenstand
         raum: Raumparameter
         ta: Außentemperatur [°C] (8760 Werte)
         nsf: Nutzungssignal [-] (8760 Werte)
@@ -123,11 +121,8 @@ def run_simulation(
         ta_stunde = ta[t]
         praesenz = nsf[t]
         phi_int = phi_intern[t]
-        direkt = direkt[t]
-        diffus = diffus[t]
         alpha = alpha_liste[t]
         theta = theta_liste[t]
-        delta = delta_liste[t]
 
         t_zul = t_zul_shifted[t]
         v_punkt = pre_v_punkt[t]
@@ -142,7 +137,7 @@ def run_simulation(
         phi_sol = 0
 
         for f in raum.fenster:
-            phi_sol += f.flaeche * berechnung_einstrahlung(alpha, delta, theta, f.orientierung, direkt, diffus, f.neigung, 0.2)
+            phi_sol += f.flaeche * berechnung_einstrahlung(alpha, theta, f.orientierung, direkt[t], diffus[t], f.neigung, 0.2)
 
         dt_pro_C = dt / raum.wkap
         nenner = 1 + dt_pro_C * (raum.h_t + h_v)
@@ -170,6 +165,7 @@ def run_simulation(
         res.h_v[t] = h_v
         res.t_nach_wrg[t] = t_nach_wrg
         res.t_abl[t] = t_abl
+        res.phi_sol[t] = phi_sol
 
         theta_aktuell = theta_neu
 

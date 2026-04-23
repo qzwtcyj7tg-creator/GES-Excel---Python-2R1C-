@@ -4,7 +4,6 @@
 from .results import HOURS_PER_YEAR
 
 import numpy as np
-sin = np.sin
 
 i_ext_mod = 1360 * 0.9
 
@@ -14,27 +13,51 @@ def sonnenstand(lange, breite, zeitzonen_offset):
     theta_liste = []
     delta_liste = []
 
+    print_count = 0
+
     for stunde in range(HOURS_PER_YEAR):
 
-        tag = stunde // 24 + 1
+        tag = stunde // 24 
+        stunde_d = stunde % 24
+        
 
         korrektur_stundenwinkel = -(zeitzonen_offset - lange)
-        # korrektur_stundenwinkel_min = (korrektur_stundenwinkel / 15) * 60
+        korrektur_stundenwinkel_mttw = -15 * 0.5
 
         # Stundenwinkel in Grad (Delta)
-        delta = (stunde - 12) * 15 + korrektur_stundenwinkel
+        delta = (stunde_d - 12) * 15 + korrektur_stundenwinkel + korrektur_stundenwinkel_mttw
 
+        # if print_count < 10:
+        #     print(f"Delta: {delta}")
+        #     print_count += 1
+        # Delta korrekt!
+        
         # Absolute Höhe Mittagssonne (Epsilon)
         eps = 23.43 * np.sin((tag - 81) / 180 * np.pi)
 
-        # Elevation (Theta)
-        theta = np.arcsin(np.sin(np.radians(eps)) * np.sin(np.radians(breite)) + np.cos(np.radians(eps)) * np.cos(np.radians(breite)) * np.cos(np.radians(delta)))
+        # if print_count < 10:
+        #     print(f"Epsilon: {eps}")
+        #     print_count += 1
+        # Epsilon korrekt!
 
-        # Azimut (Alpha)
-        alpha = np.arctan2(
+        # Elevation (Theta) in Grad
+        theta = np.degrees(np.arcsin(np.sin(np.radians(eps)) * np.sin(np.radians(breite)) + np.cos(np.radians(eps)) * np.cos(np.radians(breite)) * np.cos(np.radians(delta))))
+
+        # if print_count < 10:
+        #     print(f"Theta: {theta}")
+        #     print_count += 1
+        # Theta korrekt !
+
+        # Azimut (Alpha) in Grad
+        alpha = np.degrees(np.arctan2(
             np.sin(np.radians(delta)),
             np.cos(np.radians(delta)) * np.sin(np.radians(breite)) - np.tan(np.radians(eps)) * np.cos(np.radians(breite))
-        )
+        ))
+
+        if print_count < 10:
+            print(f"Alpha: {alpha}")
+            print_count += 1
+        # Fehler hier
 
         alpha_liste.append(alpha)
         theta_liste.append(theta)
@@ -43,14 +66,11 @@ def sonnenstand(lange, breite, zeitzonen_offset):
     return np.array(alpha_liste), np.array(theta_liste), np.array(delta_liste)
 
 
-def berechnung_einstrahlung(alpha_sonne, delta, theta, alpha_f, diffuse_strahlung, direktstrahlung, neigungswinkel, rho):
+def berechnung_einstrahlung(alpha_sonne, theta, alpha_f, diffuse_strahlung, direktstrahlung, neigungswinkel, rho):
 
-    alpha = alpha_sonne[HOURS_PER_YEAR]
-    diffuse_strahlung = diffuse_strahlung[HOURS_PER_YEAR]
-    direktstrahlung = direktstrahlung[HOURS_PER_YEAR]
-
-    if delta < 0:
-        alpha = -alpha
+    # alpha = alpha_sonne[HOURS_PER_YEAR]
+    # diffuse_strahlung = diffuse_strahlung[HOURS_PER_YEAR]
+    # direktstrahlung = direktstrahlung[HOURS_PER_YEAR]
 
     # Sonne da (ja/nein)
     if np.sin(np.radians(theta)) > 0:
@@ -101,8 +121,8 @@ def berechnung_einstrahlung(alpha_sonne, delta, theta, alpha_f, diffuse_strahlun
     y_f = np.sin(np.radians(neigungswinkel)) * np.sin(np.radians(alpha_f))
     z_f = -np.cos(np.radians(neigungswinkel))
 
-    view_faktor = (1 + np.cos(np.radians(neigungswinkel) / 2))
-    view_faktor_2 = (1 - np.cos(np.radians(neigungswinkel) / 2))
+    view_faktor = (1 + np.cos(np.radians(neigungswinkel))) / 2
+    view_faktor_2 = (1 - np.cos(np.radians(neigungswinkel))) / 2
 
     i_g_h = direktstrahlung + diffuse_strahlung
 
@@ -110,5 +130,9 @@ def berechnung_einstrahlung(alpha_sonne, delta, theta, alpha_f, diffuse_strahlun
     direkte_einstrahlung = skalarprodukt * i_b_n
     diffuse_einstrahlung = view_faktor * diffuse_strahlung
     bodenref_strahlung =  view_faktor_2 * rho * i_g_h
+
+
+    # print(f"Alpha Sonne: {alpha_sonne:.2f}°, Delta: {delta:.2f}°, Theta: {theta:.2f}°")
+    # print(f"Direkte Einstrahlung: {direkte_einstrahlung:.2f} W/m², Diffuse Einstrahlung: {diffuse_einstrahlung:.2f} W/m², Bodenreflektierte Einstrahlung: {bodenref_strahlung:.2f} W/m²")
 
     return direkte_einstrahlung + diffuse_einstrahlung + bodenref_strahlung
