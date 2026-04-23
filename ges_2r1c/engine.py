@@ -137,7 +137,7 @@ def run_simulation(
         phi_sol = 0
 
         for f in raum.fenster:
-            phi_sol += f.flaeche * berechnung_einstrahlung(alpha, theta, f.orientierung, direkt[t], diffus[t], f.neigung, 0.2)
+            phi_sol += f.flaeche * berechnung_einstrahlung(alpha, theta, f.orientierung, diffus[t], direkt[t], f.neigung, 0.2)
 
         dt_pro_C = dt / raum.wkap
         nenner = 1 + dt_pro_C * (raum.h_t + h_v)

@@ -13,12 +13,13 @@ def sonnenstand(lange, breite, zeitzonen_offset):
     theta_liste = []
     delta_liste = []
 
-    print_count = 0
+    # print_count = 0
+    # print_count2 = 0
 
     for stunde in range(HOURS_PER_YEAR):
 
         tag = stunde // 24 
-        stunde_d = stunde % 24
+        stunde_d = stunde % 24 + 1
         
 
         korrektur_stundenwinkel = -(zeitzonen_offset - lange)
@@ -49,14 +50,20 @@ def sonnenstand(lange, breite, zeitzonen_offset):
         # Theta korrekt !
 
         # Azimut (Alpha) in Grad
-        alpha = np.degrees(np.arctan2(
-            np.sin(np.radians(delta)),
-            np.cos(np.radians(delta)) * np.sin(np.radians(breite)) - np.tan(np.radians(eps)) * np.cos(np.radians(breite))
-        ))
+        # Formel: cos(alpha) = (cos(eps)*cos(delta)*sin(phi) - sin(eps)*cos(phi)) / cos(theta)
+        # sign(delta) bestimmt den Quadranten – korrekt auch wenn delta < -180° oder > 180°
+        cos_theta = np.cos(np.radians(theta))
+        if abs(cos_theta) > 1e-10:
+            cos_alpha_val = (np.cos(np.radians(eps)) * np.cos(np.radians(delta)) * np.sin(np.radians(breite))
+                             - np.sin(np.radians(eps)) * np.cos(np.radians(breite))) / cos_theta
+            cos_alpha_val = np.clip(cos_alpha_val, -1.0, 1.0)
+            alpha = np.sign(delta) * np.degrees(np.arccos(cos_alpha_val))
+        else:
+            alpha = 0.0  # Sonne im Zenit
 
-        if print_count < 10:
-            print(f"Alpha: {alpha}")
-            print_count += 1
+        # if print_count2 < 10:
+        #     print(f"Alpha: {alpha}")
+        #     print_count2 += 1
         # Fehler hier
 
         alpha_liste.append(alpha)
@@ -116,10 +123,10 @@ def berechnung_einstrahlung(alpha_sonne, theta, alpha_f, diffuse_strahlung, dire
     # x_F = - sin beta cos alpha
     # y_F = sin beta sin alpha
 
-    # Normalen Vektor der Oberfläche
-    x_f = -np.sin(np.radians(neigungswinkel)) * np.cos(np.radians(alpha_f))
-    y_f = np.sin(np.radians(neigungswinkel)) * np.sin(np.radians(alpha_f))
-    z_f = -np.cos(np.radians(neigungswinkel))
+    # Normalen Vektor der Oberfläche (Achtung Vorzeichen! x=südem, y=osten, z=oben -> y Minus weil Süd->West Positiv, aber y zeigt nach osten)
+    x_f = np.sin(np.radians(neigungswinkel)) * np.cos(np.radians(alpha_f))
+    y_f = -np.sin(np.radians(neigungswinkel)) * np.sin(np.radians(alpha_f))
+    z_f = np.cos(np.radians(neigungswinkel))
 
     view_faktor = (1 + np.cos(np.radians(neigungswinkel))) / 2
     view_faktor_2 = (1 - np.cos(np.radians(neigungswinkel))) / 2
@@ -127,7 +134,7 @@ def berechnung_einstrahlung(alpha_sonne, theta, alpha_f, diffuse_strahlung, dire
     i_g_h = direktstrahlung + diffuse_strahlung
 
     skalarprodukt = x_s * x_f + y_s * y_f + z_s * z_f
-    direkte_einstrahlung = skalarprodukt * i_b_n
+    direkte_einstrahlung = max(0.0, skalarprodukt) * i_b_n # Begrenzung auf Null wenn Sonne hinter der Fläche steht
     diffuse_einstrahlung = view_faktor * diffuse_strahlung
     bodenref_strahlung =  view_faktor_2 * rho * i_g_h
 

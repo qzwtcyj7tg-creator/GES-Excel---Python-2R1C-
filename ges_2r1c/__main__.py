@@ -67,7 +67,7 @@ def main():
     plotter = Plotter(stunden=stunden, ta=ta, res=res,
                       raum_name=raum.name, flaeche=raum.grundflaeche)
     plotter.plot_raumklima()
-    # plotter.zeige_bilanz()
+    plotter.zeige_bilanz()
     plt.show()
 
     # Vergleich mit Referenzdaten
