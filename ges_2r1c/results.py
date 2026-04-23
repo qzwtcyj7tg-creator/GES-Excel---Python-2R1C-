@@ -26,6 +26,7 @@ class SimulationResults:
     phi_heizregister: np.ndarray = field(default_factory=_zeros)  # NHR power [W]
     phi_lueftung: np.ndarray = field(default_factory=_zeros)   # Ventilation heat flow [W]
     phi_vent: np.ndarray = field(default_factory=_zeros)       # Fan power [W]
+    phi_sol: np.ndarray = field(default_factory=lambda: np.zeros(HOURS_PER_YEAR))  # Solar gains [W]
 
     # Airflow
     v_punkt: np.ndarray = field(default_factory=_zeros)        # Volume flow [m³/h]

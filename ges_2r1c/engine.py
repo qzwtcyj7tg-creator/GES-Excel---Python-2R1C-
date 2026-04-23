@@ -3,6 +3,7 @@ import numpy as np
 from .raum import RaumEingabe
 from .results import HOURS_PER_YEAR, SimulationResults
 from .rlt import rlt_berechnung
+from .sonnenstand import berechnung_einstrahlung
 
 
 def bestimme_heiz_sollwert(nutzersignal: float, raum: RaumEingabe) -> float:
@@ -66,13 +67,19 @@ def run_simulation(
     ta: np.ndarray,
     nsf: np.ndarray,
     direkt: np.ndarray,
+    diffus: np.ndarray,
     phi_intern: np.ndarray,
+    alpha_liste: np.ndarray,
+    theta_liste: np.ndarray,
     theta_start: float = 16.0,
     dt: float = 1.0,
 ) -> SimulationResults:
     """Führt die thermische Jahressimulation durch (8760 Stunden).
 
     Args:
+        diffus: Diffuse Strahlung importiert
+        theta_liste: Liste aller Theta Werte aus Sonnenstand
+        alpha_liste: Liste aller Alpha Werte aus Sonnenstand
         raum: Raumparameter
         ta: Außentemperatur [°C] (8760 Werte)
         nsf: Nutzungssignal [-] (8760 Werte)
@@ -114,7 +121,8 @@ def run_simulation(
         ta_stunde = ta[t]
         praesenz = nsf[t]
         phi_int = phi_intern[t]
-        phi_sol = direkt[t]
+        alpha = alpha_liste[t]
+        theta = theta_liste[t]
 
         t_zul = t_zul_shifted[t]
         v_punkt = pre_v_punkt[t]
@@ -124,6 +132,12 @@ def run_simulation(
         t_abl = pre_t_abl[t]
 
         h_v = 0.34 * v_punkt
+
+        # Einstrahlung je Fenster berechnen
+        phi_sol = 0
+
+        for f in raum.fenster:
+            phi_sol += f.flaeche * berechnung_einstrahlung(alpha, theta, f.orientierung, diffus[t], direkt[t], f.neigung, 0.2)
 
         dt_pro_C = dt / raum.wkap
         nenner = 1 + dt_pro_C * (raum.h_t + h_v)
@@ -151,6 +165,7 @@ def run_simulation(
         res.h_v[t] = h_v
         res.t_nach_wrg[t] = t_nach_wrg
         res.t_abl[t] = t_abl
+        res.phi_sol[t] = phi_sol
 
         theta_aktuell = theta_neu
 

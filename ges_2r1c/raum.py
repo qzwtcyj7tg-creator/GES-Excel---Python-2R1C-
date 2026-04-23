@@ -1,5 +1,13 @@
 from dataclasses import dataclass
 
+# Sehr einfach gehalten, direkte Eingabe der eff. Apertur Fläche
+# Später detailierter machen!
+@dataclass(frozen=True)
+class Fenster:
+    name: str # Kurzer Beschreibung des Fensters
+    orientierung: float  # Azimut der Fassade
+    flaeche: float  # Apertur Fläche
+    neigung: float  # z.B. 90 für vertikale Fenster
 
 @dataclass(frozen=True)
 class RaumEingabe:
@@ -16,8 +24,8 @@ class RaumEingabe:
     a_huell: float          # m²
 
     # Fenster
-    a_eff_nord: float       # m²
-    a_eff_west: float       # m²
+    #a_eff_nord: float       # m²
+    #a_eff_west: float       # m²
 
     # Luftdaten
     c_v_luft: float         # Wh/m³K
@@ -50,8 +58,9 @@ class RaumEingabe:
     phi_hc_max_heiz: float    # Maximale Heizleistung [W]
     phi_hc_max_kuehl: float   # Maximale Kühlleistung [W] (negativ)
 
-    name: str
+    fenster: list[Fenster]
 
+    name: str
 
 def create_c320() -> RaumEingabe:
     """Erstellt die Raumdefinition für Raum C3.20."""
@@ -75,8 +84,8 @@ def create_c320() -> RaumEingabe:
         rho_luft=1.13,
         temp_luft_ref=18.0,
 
-        a_eff_nord=3.986,
-        a_eff_west=1.993,
+        #a_eff_nord=3.986,
+        #a_eff_west=1.993,
 
         t_soll_heiz=21,
         t_soll_hoff=16,
@@ -102,4 +111,9 @@ def create_c320() -> RaumEingabe:
         phi_hc_max_kuehl=-9500,
 
         name="C3.20",
+
+        fenster = [
+            Fenster("Fenster Nord", orientierung=180, flaeche=3.986, neigung=90),
+            Fenster("Fenster West", orientierung=90, flaeche=1.993, neigung=90),
+        ],
     )
