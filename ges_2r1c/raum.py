@@ -1,7 +1,5 @@
 from dataclasses import dataclass
 
-# Sehr einfach gehalten, direkte Eingabe der eff. Apertur Fläche
-# Später detailierter machen!
 @dataclass(frozen=True)
 class Fenster:
     name: str # Kurzer Beschreibung des Fensters

@@ -180,6 +180,7 @@ def run_simulation(
         res.t_abl[t] = t_abl
         res.phi_sol[t] = phi_sol
         res.co2_liste[t] = co
+        res.v_punkt_inf_liste[t]=v_punkt_inf
 
         # Temperatur Update für den nächsten Zeitschritt
         theta_aktuell = theta_neu
