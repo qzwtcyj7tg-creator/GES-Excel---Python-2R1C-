@@ -23,6 +23,9 @@ def main():
     # GUI aufrufen
     raum = gui(raum)
 
+    if raum is None:
+        return print("None")
+
     for f in raum.fenster:
         print(f"{f.name} erfolgreich angelegt!")
 
@@ -44,8 +47,6 @@ def main():
     phi_geraete = 1400        # 1400 W
     phi_licht = 10 * raum.grundflaeche  # 857 W
     phi_intern = (phi_pers + phi_geraete + phi_licht) * nutzersignal
-
-    # einstrahlung_fenster_1 = sonnenstand(48.2, 10.5 )
 
     # Simulation durchführen
     res = run_simulation(

@@ -1,4 +1,6 @@
 from .raum import RaumEingabe
+from .util import air_properties
+from .infiltration import infiltration_volstr
 
 
 def t_abl_pruefen(ta_aktuell: float) -> float:
@@ -24,8 +26,10 @@ def rlt_berechnung(ta_aktuell: float, nutzer_anwesend: float, raum: RaumEingabe)
     else:
         t_nach_wrg = ta_aktuell
 
+    v_punkt_inf = infiltration_volstr(raum)
+
     # Volumenstrom
-    v_punkt = nutzer_anwesend * raum.volstr
+    v_punkt = nutzer_anwesend * (raum.volstr + v_punkt_inf)
 
     # NHR: nur bei Anwesenheit und t nach wrg < t_soll
     if nutzer_anwesend > 0 and t_nach_wrg < t_soll:
@@ -34,7 +38,7 @@ def rlt_berechnung(ta_aktuell: float, nutzer_anwesend: float, raum: RaumEingabe)
         q_nhr = 0.0
 
     if v_punkt > 0:
-        t_zul = t_nach_wrg + (q_nhr / (0.34 * v_punkt))
+        t_zul = t_nach_wrg + (q_nhr / (air_properties(ta_aktuell) * v_punkt))
     else:
         t_zul = t_nach_wrg
 
