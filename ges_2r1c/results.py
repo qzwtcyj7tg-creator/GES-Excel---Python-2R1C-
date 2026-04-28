@@ -31,3 +31,6 @@ class SimulationResults:
     # Airflow
     v_punkt: np.ndarray = field(default_factory=_zeros)        # Volume flow [m³/h]
     h_v: np.ndarray = field(default_factory=_zeros)            # Ventilation heat transfer coeff [W/K]
+
+    # CO2
+    co2_liste: np.ndarray = field(default_factory=_zeros)      # CO2 in [ppm]

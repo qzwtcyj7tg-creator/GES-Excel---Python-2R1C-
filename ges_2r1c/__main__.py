@@ -43,7 +43,7 @@ def main():
     alpha_liste, theta_liste, delta_liste = sonnenstand(10.5, 48.1, 15)
 
     # Interne Lasten berechnen
-    phi_pers = 60 * 70       # 4200 W
+    phi_pers = raum.people * 70       # 4200 W
     phi_geraete = 1400        # 1400 W
     phi_licht = 10 * raum.grundflaeche  # 857 W
     phi_intern = (phi_pers + phi_geraete + phi_licht) * nutzersignal

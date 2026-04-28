@@ -71,6 +71,8 @@ class RaumEingabe:
     e_i: float # Abschirmungsfaktor
     eps_i: float # Höhenkorrekturfaktor
 
+    people: float # Maximale Anzahl an Personen in dem Raum
+
     fenster: list[Fenster]
 
     name: str
@@ -95,10 +97,7 @@ def create_c320() -> RaumEingabe:
 
         c_v_luft=0.34,
         rho_luft=1.13,
-        temp_luft_ref=18.0,
-
-        #a_eff_nord=3.986,
-        #a_eff_west=1.993,
+        temp_luft_ref=18.0, # Redundant wenn Luft Eigenschaften in jeden Zeitschritt neu berechnet
 
         t_soll_heiz=21,
         t_soll_hoff=16,
@@ -126,6 +125,8 @@ def create_c320() -> RaumEingabe:
         n_50=1.5,
         e_i=0.02,
         eps_i=1,
+
+        people=60,
         
         name="C3.20",
 
