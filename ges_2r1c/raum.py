@@ -6,8 +6,16 @@ from dataclasses import dataclass
 class Fenster:
     name: str # Kurzer Beschreibung des Fensters
     orientierung: float  # Azimut der Fassade
-    flaeche: float  # Apertur Fläche
+    # flaeche: float  # Apertur Fläche
     neigung: float  # z.B. 90 für vertikale Fenster
+
+    # Neu
+    shgc: float # G-Wert
+    f_f: float # Rahmen
+    f_s: float # Bauliche Verschattung
+    f_w: float # nicht senkrechte Einstrahlung
+    f_v: float # Verschmutzung
+    a_f: float # Fensterfläche
 
 @dataclass(frozen=True)
 class RaumEingabe:
@@ -57,6 +65,11 @@ class RaumEingabe:
 
     phi_hc_max_heiz: float    # Maximale Heizleistung [W]
     phi_hc_max_kuehl: float   # Maximale Kühlleistung [W] (negativ)
+
+    # Infiltration
+    n_50: float # Luftwechselrate bei einer Druckdifferenz von 50 Pa
+    e_i: float # Abschirmungsfaktor
+    eps_i: float # Höhenkorrekturfaktor
 
     fenster: list[Fenster]
 
@@ -110,10 +123,14 @@ def create_c320() -> RaumEingabe:
         phi_hc_max_heiz=9500,
         phi_hc_max_kuehl=-9500,
 
+        n_50=1.5,
+        e_i=0.02,
+        eps_i=1,
+        
         name="C3.20",
 
         fenster = [
-            Fenster("Fenster Nord", orientierung=180, flaeche=3.986, neigung=90),
-            Fenster("Fenster West", orientierung=90, flaeche=1.993, neigung=90),
+            Fenster("Fenster Nord", orientierung=180, a_f=13.0,shgc=0.6, f_f=0.7, f_s=0.9, f_w=0.9, f_v=0.9, neigung=90),
+            Fenster("Fenster West", orientierung=90, a_f=6.51, shgc=0.6, f_f=0.7, f_s=0.9, f_w=0.9, f_v=0.9, neigung=90),
         ],
     )

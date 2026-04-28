@@ -3,7 +3,8 @@ import numpy as np
 from .raum import RaumEingabe
 from .results import HOURS_PER_YEAR, SimulationResults
 from .rlt import rlt_berechnung
-from .sonnenstand import berechnung_einstrahlung
+from .sonnenstand import apertur_flaeche_f, berechnung_einstrahlung
+from .util import air_properties
 
 
 def bestimme_heiz_sollwert(nutzersignal: float, raum: RaumEingabe) -> float:
@@ -131,13 +132,13 @@ def run_simulation(
         t_nach_wrg = pre_t_nach_wrg[t]
         t_abl = pre_t_abl[t]
 
-        h_v = 0.34 * v_punkt
+        h_v = air_properties(ta_stunde) * v_punkt
 
         # Einstrahlung je Fenster berechnen
         phi_sol = 0
 
         for f in raum.fenster:
-            phi_sol += f.flaeche * berechnung_einstrahlung(alpha, theta, f.orientierung, diffus[t], direkt[t], f.neigung, 0.2)
+            phi_sol += apertur_flaeche_f * berechnung_einstrahlung(alpha, theta, f.orientierung, diffus[t], direkt[t], f.neigung, 0.2)
 
         dt_pro_C = dt / raum.wkap
         nenner = 1 + dt_pro_C * (raum.h_t + h_v)

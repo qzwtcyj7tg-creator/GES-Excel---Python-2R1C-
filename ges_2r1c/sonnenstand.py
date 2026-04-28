@@ -7,6 +7,14 @@ import numpy as np
 
 i_ext_mod = 1360 * 0.9
 
+# Zeitgleichung: Aufgrund von Elliptischer Erdbahn (Keplers 2. Gesetz)
+# und Schiefe der Erdachse (23.4°)
+# Nicht die Ekliptik, dass ist der Winkel zwischen Rotationsachse der Erde und Senkrechten auf der Ekliptikebene
+def zeitgleichung(tag):
+    B = np.radians((360/365) * tag - 81)
+    ZG = 9.87 * np.sin(2*B) - 7.53 * np.cos(B) - 1.5 * np.sin(B)
+    return ZG
+
 def sonnenstand(lange, breite, zeitzonen_offset):
 
     alpha_liste = []
@@ -21,12 +29,13 @@ def sonnenstand(lange, breite, zeitzonen_offset):
         tag = stunde // 24 
         stunde_d = stunde % 24 + 1
         
+        ZG = zeitgleichung(tag)
 
         korrektur_stundenwinkel = -(zeitzonen_offset - lange)
         korrektur_stundenwinkel_mttw = -15 * 0.5
 
         # Stundenwinkel in Grad (Delta)
-        delta = (stunde_d - 12) * 15 + korrektur_stundenwinkel + korrektur_stundenwinkel_mttw
+        delta = (stunde_d - 12) * 15 + korrektur_stundenwinkel + korrektur_stundenwinkel_mttw + ZG
 
         # if print_count < 10:
         #     print(f"Delta: {delta}")
@@ -72,6 +81,8 @@ def sonnenstand(lange, breite, zeitzonen_offset):
 
     return np.array(alpha_liste), np.array(theta_liste), np.array(delta_liste)
 
+def apertur_flaeche_f(a_f, shgc, f_f, f_s, f_w, f_v):
+    return a_f * shgc * f_f * f_s * f_w * f_v
 
 def berechnung_einstrahlung(alpha_sonne, theta, alpha_f, diffuse_strahlung, direktstrahlung, neigungswinkel, rho):
 
@@ -142,4 +153,4 @@ def berechnung_einstrahlung(alpha_sonne, theta, alpha_f, diffuse_strahlung, dire
     # print(f"Alpha Sonne: {alpha_sonne:.2f}°, Delta: {delta:.2f}°, Theta: {theta:.2f}°")
     # print(f"Direkte Einstrahlung: {direkte_einstrahlung:.2f} W/m², Diffuse Einstrahlung: {diffuse_einstrahlung:.2f} W/m², Bodenreflektierte Einstrahlung: {bodenref_strahlung:.2f} W/m²")
 
-    return direkte_einstrahlung + diffuse_einstrahlung + bodenref_strahlung
+    return float(direkte_einstrahlung + diffuse_einstrahlung + bodenref_strahlung)
