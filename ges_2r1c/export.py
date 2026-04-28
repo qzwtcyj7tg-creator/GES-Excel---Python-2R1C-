@@ -48,6 +48,7 @@ def export_results(
         "Azimut Sonne [°]": alpha_liste,
         "Zenitwinkel Sonne [°]": theta_liste,
         "Delta Sonne [°]": delta_liste,
+        "CO2 [ppm]": res.co2_liste,
     })
 
     output_dir.mkdir(parents=True, exist_ok=True)

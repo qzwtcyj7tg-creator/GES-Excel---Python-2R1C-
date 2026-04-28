@@ -5,6 +5,8 @@ from .results import HOURS_PER_YEAR, SimulationResults
 from .rlt import rlt_berechnung
 from .sonnenstand import apertur_flaeche_f, berechnung_einstrahlung
 from .util import air_properties
+from .co_2 import calc_co2
+from ges_2r1c import co_2
 
 
 def bestimme_heiz_sollwert(nutzersignal: float, raum: RaumEingabe) -> float:
@@ -74,6 +76,7 @@ def run_simulation(
     theta_liste: np.ndarray,
     theta_start: float = 16.0,
     dt: float = 1.0,
+    co_0: float = 420
 ) -> SimulationResults:
     """Führt die thermische Jahressimulation durch (8760 Stunden).
 
@@ -157,6 +160,11 @@ def run_simulation(
         # 3. Finale Innentemperatur
         theta_neu = (theta_aktuell + dt_pro_C * (raum.h_t * ta_stunde + h_v * t_zul + phi_int + phi_sol + phi_hc)) / nenner
 
+        volumenstrom_gesamt = v_punkt + v_punkt_inf
+        co = calc_co2(raum, praesenz, volumenstrom_gesamt, co_0, dt)
+        # CO2 Updaten für den nächsten Schritt
+        co_0 = co
+
         # Ergebnisse speichern
         res.theta_i[t] = theta_neu
         res.phi_hc[t] = phi_hc
@@ -171,7 +179,9 @@ def run_simulation(
         res.t_nach_wrg[t] = t_nach_wrg
         res.t_abl[t] = t_abl
         res.phi_sol[t] = phi_sol
+        res.co2_liste[t] = co
 
+        # Temperatur Update für den nächsten Zeitschritt
         theta_aktuell = theta_neu
 
     return res
