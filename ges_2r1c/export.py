@@ -49,6 +49,7 @@ def export_results(
         "Zenitwinkel Sonne [°]": theta_liste,
         "Delta Sonne [°]": delta_liste,
         "CO2 [ppm]": res.co2_liste,
+        "Infiltration VS [m³/h]": res.v_punkt_inf_liste,
     })
 
     output_dir.mkdir(parents=True, exist_ok=True)
