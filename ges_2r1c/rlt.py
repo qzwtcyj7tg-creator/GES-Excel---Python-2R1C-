@@ -29,7 +29,7 @@ def rlt_berechnung(ta_aktuell: float, nutzer_anwesend: float, raum: RaumEingabe)
     v_punkt_inf = infiltration_volstr(raum)
 
     # Volumenstrom
-    v_punkt = nutzer_anwesend * (raum.volstr + v_punkt_inf)
+    v_punkt = nutzer_anwesend * raum.volstr
 
     # NHR: nur bei Anwesenheit und t nach wrg < t_soll
     if nutzer_anwesend > 0 and t_nach_wrg < t_soll:
@@ -45,4 +45,4 @@ def rlt_berechnung(ta_aktuell: float, nutzer_anwesend: float, raum: RaumEingabe)
     # Ventilator Leistung
     p_vent = nutzer_anwesend * raum.vent_ges
 
-    return t_zul, v_punkt, q_nhr, p_vent, t_nach_wrg, t_abl
+    return t_zul, v_punkt, q_nhr, p_vent, t_nach_wrg, t_abl, v_punkt_inf

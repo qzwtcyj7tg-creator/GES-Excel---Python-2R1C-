@@ -1,6 +1,8 @@
 # Berechnung des Sonnenstands und der solaren Einstrahlung
 # Geographische Länge und Breite für Augsburg (48,1° Nord, 10,5° Ost)
 
+from ges_2r1c.raum import Fenster
+
 from .results import HOURS_PER_YEAR
 
 import numpy as np
@@ -81,8 +83,8 @@ def sonnenstand(lange, breite, zeitzonen_offset):
 
     return np.array(alpha_liste), np.array(theta_liste), np.array(delta_liste)
 
-def apertur_flaeche_f(a_f, shgc, f_f, f_s, f_w, f_v):
-    return a_f * shgc * f_f * f_s * f_w * f_v
+def apertur_flaeche_f(fenster: Fenster) -> float:
+    return fenster.a_f * fenster.shgc * fenster.f_f * fenster.f_s * fenster.f_w * fenster.f_v
 
 def berechnung_einstrahlung(alpha_sonne, theta, alpha_f, diffuse_strahlung, direktstrahlung, neigungswinkel, rho):
 

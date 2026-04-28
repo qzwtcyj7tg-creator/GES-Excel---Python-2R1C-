@@ -63,8 +63,8 @@ def gui(raum):
             raum,
             heating_ideal_on=heating_var.get(),
             cooling_ideal_on=cooling_var.get(),
-            heating_max_value=heating_max.get(),
-            cooling_max_value=cooling_max.get()
+            phi_hc_max_heiz=heating_max.get(),
+            phi_hc_max_kuehl=cooling_max.get()
         )
         result["raum"] = neuer_raum
         root.destroy()

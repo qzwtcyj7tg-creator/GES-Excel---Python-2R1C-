@@ -101,15 +101,18 @@ def run_simulation(
     pre_p_vent = np.zeros(HOURS_PER_YEAR)
     pre_t_nach_wrg = np.zeros(HOURS_PER_YEAR)
     pre_t_abl = np.zeros(HOURS_PER_YEAR)
+    pre_v_punkt_inf = np.zeros(HOURS_PER_YEAR)
 
     for t in range(HOURS_PER_YEAR):
-        t_zul, v_punkt, p_hz, p_vent, t_nach_wrg, t_abl = rlt_berechnung(ta[t], nsf[t], raum)
+        t_zul, v_punkt, p_hz, p_vent, t_nach_wrg, t_abl, v_punkt_inf = rlt_berechnung(ta[t], nsf[t], raum)
         pre_t_zul[t] = t_zul
         pre_v_punkt[t] = v_punkt
         pre_p_hz[t] = p_hz
         pre_p_vent[t] = p_vent
         pre_t_nach_wrg[t] = t_nach_wrg
         pre_t_abl[t] = t_abl
+        pre_v_punkt_inf[t] = v_punkt_inf
+
 
     # Zulufttemperatur um 1 Stunde verschieben (wie im GES-Excel)
     t_zul_shifted = np.zeros(HOURS_PER_YEAR)
@@ -131,14 +134,15 @@ def run_simulation(
         p_vent = pre_p_vent[t]
         t_nach_wrg = pre_t_nach_wrg[t]
         t_abl = pre_t_abl[t]
+        v_punkt_inf = pre_v_punkt_inf[t]
 
-        h_v = air_properties(ta_stunde) * v_punkt
+        h_v = air_properties(ta_stunde) * (v_punkt + v_punkt_inf)
 
         # Einstrahlung je Fenster berechnen
         phi_sol = 0
 
         for f in raum.fenster:
-            phi_sol += apertur_flaeche_f * berechnung_einstrahlung(alpha, theta, f.orientierung, diffus[t], direkt[t], f.neigung, 0.2)
+            phi_sol += apertur_flaeche_f(f) * berechnung_einstrahlung(alpha, theta, f.orientierung, diffus[t], direkt[t], f.neigung, 0.2)
 
         dt_pro_C = dt / raum.wkap
         nenner = 1 + dt_pro_C * (raum.h_t + h_v)
