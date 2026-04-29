@@ -6,7 +6,7 @@ from .rlt import rlt_berechnung
 from .sonnenstand import apertur_flaeche_f, berechnung_einstrahlung
 from .util import air_properties
 from .co_2 import calc_co2
-from ges_2r1c import co_2
+# from ges_2r1c import co_2
 
 
 def bestimme_heiz_sollwert(nutzersignal: float, raum: RaumEingabe) -> float:

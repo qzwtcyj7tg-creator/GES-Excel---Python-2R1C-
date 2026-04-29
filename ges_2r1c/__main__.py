@@ -12,6 +12,7 @@ from .wetter import lade_wetterdaten
 from .zeitplan import create_zeitplan
 from .sonnenstand import sonnenstand
 from .gui import gui
+from .interne_lasten import calc_interne_lasten, calc_interne_lasten_schule
 
 
 def main():
@@ -39,14 +40,11 @@ def main():
     # Nutzungssignal erstellen
     nutzersignal = create_zeitplan()
 
-    # Sonnenstand berechnen für das ganze Jahr
-    alpha_liste, theta_liste, delta_liste = sonnenstand(10.5, 48.1, 15)
+    # Sonnenstand berechnen für das ganze Jahr (Augsburg)
+    alpha_liste, theta_liste, delta_liste = sonnenstand(lange = 10.5, breite = 48.1, zeitzonen_offset = 15)
 
-    # Interne Lasten berechnen
-    phi_pers = raum.people * 70       # 4200 W
-    phi_geraete = 1400        # 1400 W
-    phi_licht = 10 * raum.grundflaeche  # 857 W
-    phi_intern = (phi_pers + phi_geraete + phi_licht) * nutzersignal
+    # Interne Lasten berechnen (Profil Schule bzw. Uni)
+    phi_intern = calc_interne_lasten_schule(raum, nutzersignal)
 
     # Simulation durchführen
     res = run_simulation(
@@ -72,7 +70,7 @@ def main():
     plt.show()
 
     # Vergleich mit Referenzdaten
-    from .vergleich import vergleich_plot
+    # from .vergleich import vergleich_plot
     # vergleich_plot(
     #     it_py=res.theta_i,
     #     hl_py=res.phi_hc,
