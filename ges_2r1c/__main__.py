@@ -12,7 +12,7 @@ from .wetter import lade_wetterdaten
 from .zeitplan import create_zeitplan
 from .sonnenstand import sonnenstand
 from .gui import gui
-from .interne_lasten import calc_interne_lasten, calc_interne_lasten_schule
+from .interne_lasten import calc_interne_lasten_schule
 
 
 def main():
